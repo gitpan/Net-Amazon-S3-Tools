@@ -20,7 +20,6 @@ DEPENDENCIES
 - File::HomeDir
 - Net::Amazon::S3
 - Net::Amazon::S3::Bucket
-- XML::Simple
 - XML::Writer
 
 - You must have an Amazon Web Service (AWS) account with the Simple
@@ -35,7 +34,7 @@ DEPENDENCIES
 
 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Mark Atwood
+Copyright (C) 2007,2008 by Mark Atwood
 
     Many thanks to Wotan LLC <http://wotanllc.com>,
     for supporting the development of these S3 tools.

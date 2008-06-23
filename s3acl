@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (C) 2007 by Mark Atwood <mark@fallenpegasus.com>.
+# Copyright (C) 2007,2008 by Mark Atwood <mark@fallenpegasus.com>.
 #
 # This module is not an official Amazon product or service.  Information
 # used to create this module was obtained only from publicly available
@@ -26,8 +26,8 @@ use Getopt::Long;
 use Pod::Usage;
 use Net::Amazon::S3;
 use Net::Amazon::S3::Bucket;
-use XML::Simple;
 use XML::Writer;
+use XML::LibXML;
 use Getopt::ArgvFile qw/argvFile/;
 use File::HomeDir;
 
@@ -286,25 +286,43 @@ sub parse_xmlacl
     my $xml_acl_raw = shift;
     my $bucket_name = shift;
     my $item_name = shift;
-    my $r;
 
-    my $xml_parser = new XML::Simple;
-    my $x = $xml_parser->XMLin($xml_acl_raw);
+    my $parser = XML::LibXML->new();
+    my $doc = $parser->parse_string($xml_acl_raw);
+    my $xpc = XML::LibXML::XPathContext->new($doc);
+    $xpc->registerNs('s3', 'http://s3.amazonaws.com/doc/2006-03-01/');
+    $xpc->registerNs('xsi', 'http://www.w3.org/2001/XMLSchema-instance');
+
+    my $r;
 
     $r->{bucket} = $bucket_name;
     $r->{item} = $item_name if ($item_name); 
-    $r->{Owner}->{ID} = $x->{Owner}->{ID};
-    $r->{Owner}->{DisplayName} = $x->{Owner}->{DisplayName};
+
+    $r->{Owner}->{ID} =
+	$xpc->findvalue("/s3:AccessControlPolicy/s3:Owner/s3:ID");
+    $r->{Owner}->{DisplayName} =
+	$xpc->findvalue("/s3:AccessControlPolicy/s3:Owner/s3:DisplayName");
+
     $r->{Grant} = [];
-    my $grant = $x->{AccessControlList}->{Grant};
-    if ("HASH" eq ref($grant)) {  # there is just one grant
-	push(@{$r->{Grant}}, parse_grant($grant, $x->{Owner}->{ID}));
-    } elsif ("ARRAY" eq ref($grant)) {  # there are more than one grant
-	foreach my $g (@$grant) {
-	    push(@{$r->{Grant}}, parse_grant($g, $x->{Owner}->{ID}));
-	}  
-    } else {
-	# i think this means there are no grants
+
+    foreach my $xg ($xpc->findnodes("/s3:AccessControlPolicy/s3:AccessControlList/s3:Grant")) {
+	my $g;
+
+	$g->{type}= $xpc->find('./s3:Grantee/@xsi:type', $xg)->to_literal();
+
+	if ($g->{type} eq 'CanonicalUser') {
+	    $g->{ID} = $xpc->find('./s3:Grantee/s3:ID', $xg)->to_literal();
+	    $g->{DisplayName} = $xpc->find('./s3:Grantee/s3:DisplayName', $xg)->to_literal();
+	} elsif ($g->{type} eq 'Group') {
+	    $g->{URI} = $xpc->find('./s3:Grantee/s3:URI', $xg)->to_literal();
+	} elsif ($g->{type} eq 'AmazonCustomerByEmail') {
+	    $g->{EmailAddress} = $xpc->find('./s3:Grantee/s3:EmailAddress', $xg)->to_literal();
+	} else {
+	    # unknown type
+	}
+	$g->{Permission} = $xpc->find("./s3:Permission", $xg)->to_literal();
+
+	push(@{$r->{Grant}}, $g);
     }
 
     return $r;
@@ -586,6 +604,8 @@ Owner gets C<FULL_CONTROL> .
 Any principal authenticated as a registered Amazon S3 user is granted
 C<READ> access.
 
+=back
+
 =item B<bucket> or B<bucket/key>
 
 One or more bucket names or bucket and key names, specifies an item.
@@ -603,8 +623,6 @@ line options from the bucket or bucket/key names with two dashes, like
 so:
 
   s3acl --get -- --bucketname/keyname
-
-=back
 
 =back
 
@@ -845,7 +863,7 @@ accessable by the user generates less than helpful error messages.
 
 L<Net::Amazon::S3> already uses L<XML::LibXML> and
 L<XML::LibXML::XPathContext>, so this tool should use those instead of
-using L<XML::Simple> and L<XML::Writer>, to have fewer module
+using L<XML::Writer>, to have fewer module
 dependences.
 
 It is possible to add the same grant to a bucket or item more than

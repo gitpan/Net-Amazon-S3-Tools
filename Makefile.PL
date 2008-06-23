@@ -12,8 +12,7 @@ WriteMakefile(
 	'Net::Amazon::S3::Bucket' => 0,
 	# todo
 	# Net::Amazon::S3 already uses XML::LibXML & XML::LibXML::XPathContext
-	# so do rewrite to avoid need for XML::Simple & XML::Writer
-	'XML::Simple' => 0,
+	# so do rewrite to avoid need for XML::Writer
 	'XML::Writer' => 0,
     },
     'EXE_FILES' => [ 's3acl', 's3ls',

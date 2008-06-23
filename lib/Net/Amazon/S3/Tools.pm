@@ -25,7 +25,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 
 # Preloaded methods go here.
@@ -133,7 +133,7 @@ Many thanks to the Amazon AWS engineers for developing S3.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Mark Atwood
+Copyright (C) 2007,2008 by Mark Atwood
 
 This module is not an official Amazon product or service.  Information
 used to create this module was obtained only from publicly available
