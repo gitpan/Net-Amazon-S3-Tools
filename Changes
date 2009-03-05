@@ -12,3 +12,7 @@ Revision history for Perl extension Net::Amazon::S3::Tools.
 
 0.07  Mon Apr 28 14:28:14 PDT 2008
 	- remove dependecy on XML::Simple
+
+0.08  Wed Feb 25 21:37:17 EST 2009
+        - add s3rm
+	- convert to bzr and move to Launchpad

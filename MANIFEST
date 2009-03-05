@@ -13,4 +13,4 @@ s3ls
 s3mkbucket
 s3put
 s3rmbucket
-META.yml                                 Module meta-data (added by MakeMaker)
+s3rm

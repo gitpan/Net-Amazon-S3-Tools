@@ -17,6 +17,7 @@ WriteMakefile(
     },
     'EXE_FILES' => [ 's3acl', 's3ls',
 		     's3get', 's3put',
+		     's3rm', 
 		     's3mkbucket', 's3rmbucket' ],
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT       => 'Command line tools for Amazon AWS S3',
